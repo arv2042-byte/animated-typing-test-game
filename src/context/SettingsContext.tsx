@@ -61,6 +61,7 @@ interface SettingsContextType {
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
   saveSettings: () => void;
   resetSettings: () => void;
+  applyMobileOptimizations: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -68,6 +69,7 @@ const SettingsContext = createContext<SettingsContextType>({
   updateSetting: () => {},
   saveSettings: () => {},
   resetSettings: () => {},
+  applyMobileOptimizations: () => {},
 });
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -81,6 +83,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const updateSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const applyMobileOptimizations = () => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      setSettings((prev) => ({
+        ...prev,
+        fontSize: Math.min(prev.fontSize, 16),
+        bubbleSize: Math.min(prev.bubbleSize, 0.8),
+        maxBubbles: Math.min(prev.maxBubbles, 3),
+        typingMode: "paragraph", // Better for mobile keyboards
+      }));
+    }
   };
 
   const saveSettings = () => {
@@ -97,7 +112,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting, saveSettings, resetSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSetting, saveSettings, resetSettings, applyMobileOptimizations }}>
       {children}
     </SettingsContext.Provider>
   );

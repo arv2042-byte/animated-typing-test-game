@@ -17,16 +17,32 @@ const ACCENT_COLORS = [
   { label: "Amber", value: "amber", bg: "bg-amber-500" },
 ];
 
+import { useState, useEffect } from "react";
+import { useSettings } from "../context/SettingsContext";
+import { TOPIC_CATEGORIES, type TopicCategory } from "../data/texts";
+
 export default function SettingsPanel() {
   const [open, setOpen] = useState(false);
   const [saveLabel, setSaveLabel] = useState("Save Settings");
-  const { settings, updateSetting, saveSettings, resetSettings } = useSettings();
+  const { settings, updateSetting, saveSettings, resetSettings, applyMobileOptimizations } = useSettings();
   const dm = settings.darkMode;
+
+  // Auto-optimize on mount and window resize
+  useEffect(() => {
+    applyMobileOptimizations();
+    const handleResize = () => applyMobileOptimizations();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleSave = () => {
     saveSettings();
     setSaveLabel("Saved");
     setTimeout(() => setSaveLabel("Save Settings"), 1400);
+    // Auto-close on mobile after saving
+    if (window.innerWidth < 768) {
+      setTimeout(() => setOpen(false), 1000);
+    }
   };
 
   return (
@@ -63,12 +79,12 @@ export default function SettingsPanel() {
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 z-[101] h-dvh w-full max-w-md transition-transform duration-500 ease-out ${
+        className={`fixed top-0 right-0 z-[101] h-dvh w-full sm:max-w-md transition-transform duration-500 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div
-          className={`h-dvh overflow-y-auto overscroll-contain px-6 py-6 pb-24 ${
+          className={`h-dvh overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 pb-24 ${
             dm
               ? "bg-gray-900/98 border-l border-white/10"
               : "bg-white/98 border-l border-gray-200"
